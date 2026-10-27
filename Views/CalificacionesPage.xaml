@@ -9,82 +9,167 @@
              BackgroundColor="{StaticResource FondoApp}"
              Title="Sistema de Calificaciones">
 
-    <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="18">
+    <ContentPage.Resources>
+        <Style x:Key="TituloSeccion" TargetType="Label">
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="TextColor" Value="{StaticResource Marino}" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+        <Style x:Key="NumeroPaso" TargetType="Border">
+            <Setter Property="WidthRequest" Value="28" />
+            <Setter Property="HeightRequest" Value="28" />
+            <Setter Property="StrokeThickness" Value="0" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 14" />
+            <Setter Property="BackgroundColor" Value="{StaticResource Turquesa}" />
+        </Style>
+        <Style x:Key="TextoPaso" TargetType="Label">
+            <Setter Property="TextColor" Value="White" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="HorizontalOptions" Value="Center" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+    </ContentPage.Resources>
 
-            <!-- ENCABEZADO -->
-            <Border x:Name="Encabezado" BackgroundColor="{StaticResource Marino}"
-                    StrokeThickness="0" StrokeShape="RoundRectangle 20" Padding="24,22">
-                <VerticalStackLayout Spacing="4">
+    <!-- RAÍZ con 2 zonas: NOTAS (lo que se llena) y RESUMEN (resultado siempre visible).
+         Pantalla ancha: lado a lado. Celular: notas arriba y resumen fijo abajo. -->
+    <Grid x:Name="Raiz" RowDefinitions="*,Auto">
+
+        <!-- ZONA DE NOTAS -->
+        <ScrollView x:Name="ZonaNotas">
+            <VerticalStackLayout Padding="20,24" Spacing="28">
+
+                <!-- Encabezado -->
+                <VerticalStackLayout x:Name="Encabezado" Spacing="2">
                     <Label Text="INSTITUTO SUDAMERICANO" FontSize="12" FontAttributes="Bold"
-                           CharacterSpacing="2" TextColor="#7FD3E0" />
-                    <Label Text="Sistema de Calificaciones" FontSize="26" FontAttributes="Bold" TextColor="White" />
-                    <Label Text="3 momentos · Clase 40 % · Autónoma 40 % · Evaluación 20 %"
-                           FontSize="13" TextColor="#C9D3E6" />
+                           CharacterSpacing="2" TextColor="{StaticResource Turquesa}" />
+                    <Label Text="Sistema de Calificaciones" FontSize="28" FontAttributes="Bold"
+                           TextColor="{StaticResource Marino}" />
+                    <Label Text="Cada momento: Clase 40 % · Autónoma 40 % · Evaluación 20 %. La nota final es el promedio de los 3."
+                           FontSize="13" TextColor="{StaticResource TextoSuave}" />
                 </VerticalStackLayout>
-            </Border>
 
-            <!-- DATOS: estudiante y fecha -->
-            <Border x:Name="TarjetaDatos" Style="{StaticResource Tarjeta}">
-                <Grid x:Name="GridDatos" RowDefinitions="Auto,Auto" ColumnSpacing="16" RowSpacing="14">
-                    <VerticalStackLayout Spacing="6">
-                        <Label Text="Estudiante" Style="{StaticResource Etiqueta}" />
-                        <Border Style="{StaticResource Campo}">
-                            <Picker ItemsSource="{Binding Estudiantes}"
-                                    SelectedItem="{Binding EstudianteSeleccionado}"
-                                    Title="{OnPlatform Android='Seleccione un estudiante'}" />
+                <!-- PASO 1: estudiante y fecha -->
+                <VerticalStackLayout x:Name="SeccionEstudiante" Spacing="12">
+                    <HorizontalStackLayout Spacing="10">
+                        <Border Style="{StaticResource NumeroPaso}">
+                            <Label Text="1" Style="{StaticResource TextoPaso}" />
                         </Border>
-                        <Label Text="{Binding ErrorEstudiante}" IsVisible="{Binding TieneErrorEstudiante}"
-                               Style="{StaticResource TextoError}" />
-                    </VerticalStackLayout>
-
-                    <VerticalStackLayout Grid.Row="1" Spacing="6">
-                        <Label Text="Fecha" Style="{StaticResource Etiqueta}" />
-                        <Border Style="{StaticResource Campo}">
-                            <DatePicker Date="{Binding Fecha}" Format="dd/MM/yyyy" />
-                        </Border>
-                    </VerticalStackLayout>
-                </Grid>
-            </Border>
-
-            <!-- MOMENTOS: la misma tarjeta 3 veces, cada una con su propio ViewModel -->
-            <Grid x:Name="GridMomentos" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="16" RowSpacing="16">
-                <comp:MomentoCard BindingContext="{Binding Momento1}" />
-                <comp:MomentoCard Grid.Row="1" BindingContext="{Binding Momento2}" />
-                <comp:MomentoCard Grid.Row="2" BindingContext="{Binding Momento3}" />
-            </Grid>
-
-            <!-- RESULTADO -->
-            <Border x:Name="TarjetaResultado" Style="{StaticResource Tarjeta}">
-                <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto" RowSpacing="8">
-                    <Label Text="NOTA FINAL" Style="{StaticResource Etiqueta}" CharacterSpacing="1" />
-
-                    <HorizontalStackLayout Grid.Row="1" Spacing="6">
-                        <Label Text="{Binding NotaFinalTexto}" FontSize="48" FontAttributes="Bold"
-                               TextColor="{StaticResource Marino}" />
-                        <Label Text="/ 100" FontSize="18" TextColor="{StaticResource TextoSuave}"
-                               VerticalOptions="End" Margin="0,0,0,10" />
+                        <Label Text="Seleccione al estudiante" Style="{StaticResource TituloSeccion}" />
                     </HorizontalStackLayout>
 
-                    <Border x:Name="ChipEstado" Grid.Row="1" Grid.Column="1" VerticalOptions="Center"
-                            BackgroundColor="{Binding FondoEstado}" StrokeThickness="0"
-                            StrokeShape="RoundRectangle 18" Padding="16,8">
-                        <Label Text="{Binding EstadoTexto}" TextColor="{Binding ColorEstado}"
-                               FontAttributes="Bold" FontSize="14" CharacterSpacing="1" />
+                    <Border Style="{StaticResource Tarjeta}" Padding="20">
+                        <Grid x:Name="GridDatos" RowDefinitions="Auto,Auto" ColumnSpacing="20" RowSpacing="16">
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="Estudiante" Style="{StaticResource Etiqueta}" />
+                                <Border Style="{StaticResource Campo}">
+                                    <Picker ItemsSource="{Binding Estudiantes}"
+                                            SelectedItem="{Binding EstudianteSeleccionado}"
+                                            Title="{OnPlatform Android='Seleccione un estudiante'}" />
+                                </Border>
+                                <Label Text="{Binding ErrorEstudiante}" IsVisible="{Binding TieneErrorEstudiante}"
+                                       Style="{StaticResource TextoError}" />
+                                <Label Text="{Binding TextoGuardado}" IsVisible="{Binding HayEstudiante}"
+                                       FontSize="12" TextColor="{StaticResource TextoSuave}" />
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Grid.Row="1" Spacing="6">
+                                <Label Text="Fecha de registro" Style="{StaticResource Etiqueta}" />
+                                <Border Style="{StaticResource Campo}">
+                                    <DatePicker Date="{Binding Fecha}" Format="dd/MM/yyyy" />
+                                </Border>
+                            </VerticalStackLayout>
+                        </Grid>
                     </Border>
+                </VerticalStackLayout>
 
-                    <!-- El Progress lo anima el code-behind -->
-                    <ProgressBar x:Name="BarraProgreso" Grid.Row="2" Grid.ColumnSpan="2"
-                                 ProgressColor="{Binding ColorEstado}" HeightRequest="10" Margin="0,6,0,0" />
+                <!-- PASO 2: notas -->
+                <VerticalStackLayout Spacing="12">
+                    <HorizontalStackLayout Spacing="10">
+                        <Border Style="{StaticResource NumeroPaso}">
+                            <Label Text="2" Style="{StaticResource TextoPaso}" />
+                        </Border>
+                        <Label Text="Ingrese las notas" Style="{StaticResource TituloSeccion}" />
+                    </HorizontalStackLayout>
+
+                    <Label Text="Primero seleccione un estudiante para habilitar las notas."
+                           IsVisible="{Binding NoHayEstudiante}" FontSize="13" TextColor="{StaticResource TextoSuave}" />
+
+                    <!-- Deshabilitado y atenuado hasta que se elija un estudiante -->
+                    <Grid x:Name="GridMomentos" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="16" RowSpacing="16"
+                          IsEnabled="{Binding HayEstudiante}">
+                        <Grid.Triggers>
+                            <DataTrigger TargetType="Grid" Binding="{Binding HayEstudiante}" Value="False">
+                                <Setter Property="Opacity" Value="0.45" />
+                            </DataTrigger>
+                        </Grid.Triggers>
+                        <comp:MomentoCard BindingContext="{Binding Momento1}" />
+                        <comp:MomentoCard Grid.Row="1" BindingContext="{Binding Momento2}" />
+                        <comp:MomentoCard Grid.Row="2" BindingContext="{Binding Momento3}" />
+                    </Grid>
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- PANEL DE RESULTADO (siempre visible) -->
+        <Border x:Name="PanelResumen" Grid.Row="1" BackgroundColor="{StaticResource Marino}"
+                StrokeThickness="0" StrokeShape="RoundRectangle 24" Padding="22,18" Margin="12,0,12,12">
+            <VerticalStackLayout Spacing="12">
+
+                <Grid ColumnDefinitions="*,Auto">
+                    <VerticalStackLayout>
+                        <Label Text="NOTA FINAL" FontSize="12" FontAttributes="Bold"
+                               CharacterSpacing="2" TextColor="#9FB3D6" />
+                        <HorizontalStackLayout Spacing="6">
+                            <Label Text="{Binding NotaFinalTexto}" FontSize="40" FontAttributes="Bold" TextColor="White" />
+                            <Label Text="/ 100" FontSize="16" TextColor="#9FB3D6"
+                                   VerticalOptions="End" Margin="0,0,0,8" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+
+                    <Border x:Name="ChipEstado" Grid.Column="1" VerticalOptions="Center"
+                            BackgroundColor="{Binding FondoEstado}" StrokeThickness="0"
+                            StrokeShape="RoundRectangle 16" Padding="14,7">
+                        <Label Text="{Binding EstadoTexto}" TextColor="{Binding ColorEstado}"
+                               FontAttributes="Bold" FontSize="13" CharacterSpacing="1" />
+                    </Border>
                 </Grid>
-            </Border>
 
-            <!-- BOTÓN -->
-            <Button x:Name="BotonCalcular" Text="Calcular notas del estudiante"
-                    BackgroundColor="{StaticResource Turquesa}" TextColor="White"
-                    FontAttributes="Bold" FontSize="16" CornerRadius="14" HeightRequest="54"
-                    Clicked="AlPresionarCalcular" />
+                <ProgressBar x:Name="BarraProgreso" ProgressColor="{Binding ColorEstado}" />
 
-        </VerticalStackLayout>
-    </ScrollView>
+                <!-- Desglose por momento (solo en pantalla ancha) -->
+                <VerticalStackLayout x:Name="Desglose" Spacing="10">
+                    <BoxView HeightRequest="1" Color="#33507F" />
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="Momento 1" FontSize="14" TextColor="#C9D3E6" />
+                        <Label Grid.Column="1" Text="{Binding Momento1.NotaTexto}" FontSize="14"
+                               FontAttributes="Bold" TextColor="White" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="Momento 2" FontSize="14" TextColor="#C9D3E6" />
+                        <Label Grid.Column="1" Text="{Binding Momento2.NotaTexto}" FontSize="14"
+                               FontAttributes="Bold" TextColor="White" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="Momento 3" FontSize="14" TextColor="#C9D3E6" />
+                        <Label Grid.Column="1" Text="{Binding Momento3.NotaTexto}" FontSize="14"
+                               FontAttributes="Bold" TextColor="White" />
+                    </Grid>
+                    <BoxView HeightRequest="1" Color="#33507F" />
+                    <Label Text="Aprobado: 70 o más · Complementario: 50 a 69,99 · Reprobado: menos de 50"
+                           FontSize="12" TextColor="#9FB3D6" />
+                </VerticalStackLayout>
+
+                <Button x:Name="BotonCalcular" Text="Calcular notas del estudiante"
+                        BackgroundColor="{StaticResource Turquesa}" TextColor="White"
+                        FontAttributes="Bold" FontSize="16" CornerRadius="14" HeightRequest="52"
+                        Clicked="AlPresionarCalcular" />
+
+                <Label x:Name="AyudaBoton" Text="Valida los datos, guarda las notas del estudiante y muestra el reporte."
+                       FontSize="12" TextColor="#9FB3D6" HorizontalTextAlignment="Center" />
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
 </ContentPage>

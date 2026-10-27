@@ -5,52 +5,56 @@
              x:Class="CalificacionesSudamericano.Views.Componentes.MomentoCard"
              x:DataType="vm:MomentoViewModel">
 
-    <Border Style="{StaticResource Tarjeta}">
-        <VerticalStackLayout Spacing="14">
+    <Border Style="{StaticResource Tarjeta}" Padding="20">
+        <VerticalStackLayout Spacing="18">
 
-            <!-- Título con franja turquesa -->
-            <HorizontalStackLayout Spacing="10">
-                <BoxView WidthRequest="4" HeightRequest="22" CornerRadius="2"
-                         Color="{StaticResource Turquesa}" VerticalOptions="Center" />
-                <Label Text="{Binding Titulo}" FontSize="18" FontAttributes="Bold"
-                       TextColor="{StaticResource Marino}" VerticalOptions="Center" />
-            </HorizontalStackLayout>
+            <!-- Encabezado: título a la izquierda, nota del momento a la derecha -->
+            <Grid ColumnDefinitions="*,Auto">
+                <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                    <BoxView WidthRequest="4" HeightRequest="20" CornerRadius="2"
+                             Color="{StaticResource Turquesa}" VerticalOptions="Center" />
+                    <Label Text="{Binding Titulo}" FontSize="17" FontAttributes="Bold"
+                           TextColor="{StaticResource Marino}" VerticalOptions="Center" />
+                </HorizontalStackLayout>
 
-            <!-- Los 3 campos: UNA plantilla que se repite por cada elemento de "Campos" (como .map() en React) -->
-            <VerticalStackLayout Spacing="12" BindableLayout.ItemsSource="{Binding Campos}">
+                <Border Grid.Column="1" BackgroundColor="#EEF3FA" StrokeThickness="0"
+                        StrokeShape="RoundRectangle 10" Padding="12,5">
+                    <Label Text="{Binding NotaTexto}" FontSize="17" FontAttributes="Bold"
+                           TextColor="{StaticResource Marino}" />
+                </Border>
+            </Grid>
+
+            <!-- Los 3 campos en UNA fila y del mismo ancho, como celdas de una libreta de notas -->
+            <FlexLayout Direction="Row" Margin="-5,0" BindableLayout.ItemsSource="{Binding Campos}">
                 <BindableLayout.ItemTemplate>
                     <DataTemplate x:DataType="vm:CampoNotaViewModel">
-                        <VerticalStackLayout Spacing="4">
-                            <Grid ColumnDefinitions="*,Auto">
-                                <Label Text="{Binding Etiqueta}" Style="{StaticResource Etiqueta}" />
-                                <Label Grid.Column="1" Text="{Binding Porcentaje}" FontSize="12"
-                                       FontAttributes="Bold" TextColor="{StaticResource Turquesa}" />
-                            </Grid>
+                        <VerticalStackLayout FlexLayout.Grow="1" FlexLayout.Basis="0" Margin="5,0" Spacing="6">
+
+                            <VerticalStackLayout Spacing="0">
+                                <Label Text="{Binding Etiqueta}" Style="{StaticResource Etiqueta}"
+                                       HorizontalTextAlignment="Center" />
+                                <Label Text="{Binding Porcentaje}" FontSize="11" FontAttributes="Bold"
+                                       TextColor="{StaticResource Turquesa}" HorizontalTextAlignment="Center" />
+                            </VerticalStackLayout>
 
                             <Border Style="{StaticResource Campo}">
-                                <!-- Si el campo tiene error, el borde se pone rojo -->
                                 <Border.Triggers>
                                     <DataTrigger TargetType="Border" Binding="{Binding TieneError}" Value="True">
                                         <Setter Property="Stroke" Value="{StaticResource ColorError}" />
+                                        <Setter Property="BackgroundColor" Value="#FFF5F5" />
                                     </DataTrigger>
                                 </Border.Triggers>
-                                <Entry Text="{Binding Texto}" Placeholder="1 - 100" Keyboard="Numeric" />
+                                <Entry Text="{Binding Texto}" Placeholder="1-100" Keyboard="Numeric"
+                                       HorizontalTextAlignment="Center" FontSize="17" />
                             </Border>
 
-                            <Label Text="{Binding Error}" IsVisible="{Binding TieneError}"
-                                   Style="{StaticResource TextoError}" />
+                            <!-- Siempre ocupa su espacio: la tarjeta no "salta" cuando aparece un error -->
+                            <Label Text="{Binding Error}" Style="{StaticResource TextoError}"
+                                   HorizontalTextAlignment="Center" MinimumHeightRequest="16" />
                         </VerticalStackLayout>
                     </DataTemplate>
                 </BindableLayout.ItemTemplate>
-            </VerticalStackLayout>
-
-            <!-- Nota del momento, en vivo -->
-            <BoxView HeightRequest="1" Color="#E5E9F0" />
-            <Grid ColumnDefinitions="*,Auto">
-                <Label Text="Nota del momento" Style="{StaticResource Etiqueta}" VerticalOptions="Center" />
-                <Label Grid.Column="1" Text="{Binding NotaTexto}" FontSize="24"
-                       FontAttributes="Bold" TextColor="{StaticResource Marino}" />
-            </Grid>
+            </FlexLayout>
         </VerticalStackLayout>
     </Border>
 </ContentView>

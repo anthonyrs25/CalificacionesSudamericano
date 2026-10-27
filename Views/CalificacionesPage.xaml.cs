@@ -9,24 +9,23 @@ public partial class CalificacionesPage : ContentPage
     private readonly CalificacionesViewModel _vm;
     private readonly List<View> _bloques;
     private bool _yaAnimoEntrada;
-    private bool? _esPantallaAncha;
+    private bool? _panelAlLado;
+    private bool? _momentosEnFila;
+    private bool? _datosEnFila;
     private EstadoAcademico? _ultimoEstado;
 
     public CalificacionesPage()
     {
         InitializeComponent();
 
-        // Conectamos la pantalla con su "cerebro"
         _vm = new CalificacionesViewModel();
         BindingContext = _vm;
 
-        // Bloques que entrarán animados, en este orden
-        _bloques = new List<View> { Encabezado, TarjetaDatos };
+        // Bloques que entran animados, en este orden
+        _bloques = new List<View> { Encabezado, SeccionEstudiante };
         _bloques.AddRange(GridMomentos.Children.OfType<View>());
-        _bloques.Add(TarjetaResultado);
-        _bloques.Add(BotonCalcular);
+        _bloques.Add(PanelResumen);
 
-        // Empiezan invisibles y un poco más abajo
         foreach (var bloque in _bloques)
         {
             bloque.Opacity = 0;
@@ -48,7 +47,7 @@ public partial class CalificacionesPage : ContentPage
         {
             _ = bloque.FadeToAsync(1, 450, Easing.CubicOut);
             _ = bloque.TranslateToAsync(0, 0, 450, Easing.CubicOut);
-            await Task.Delay(80); // pequeño escalonado entre tarjetas
+            await Task.Delay(90);
         }
     }
 
@@ -65,7 +64,6 @@ public partial class CalificacionesPage : ContentPage
         }
     }
 
-    // La barra se llena suavemente desde donde está hasta el nuevo valor
     private void AnimarBarra(double destino)
     {
         this.AbortAnimation("AnimacionBarra");
@@ -74,17 +72,15 @@ public partial class CalificacionesPage : ContentPage
         animacion.Commit(this, "AnimacionBarra", length: 600);
     }
 
-    // La etiqueta de estado "salta" cuando cambia
     private async Task AnimarChipAsync()
     {
         await ChipEstado.ScaleToAsync(1.18, 140, Easing.CubicOut);
         await ChipEstado.ScaleToAsync(1.0, 220, Easing.SpringOut);
     }
 
-    // ---------- BOTÓN ----------
+    // ---------- BOTÓN: validar, guardar y mostrar reporte ----------
     private async void AlPresionarCalcular(object? sender, EventArgs e)
     {
-        // Pequeño efecto de "presionado"
         await BotonCalcular.ScaleToAsync(0.96, 80);
         await BotonCalcular.ScaleToAsync(1.0, 80);
 
@@ -96,7 +92,8 @@ public partial class CalificacionesPage : ContentPage
             return;
         }
 
-        await DisplayAlertAsync("Calificaciones del estudiante", _vm.ConstruirResumen(), "Aceptar");
+        _vm.GuardarEstudianteActual();
+        await DisplayAlertAsync("Notas registradas", _vm.ConstruirResumen(), "Aceptar");
     }
 
     // ---------- DISEÑO ADAPTABLE ----------
@@ -104,15 +101,62 @@ public partial class CalificacionesPage : ContentPage
     {
         if (Width <= 0) return;
 
-        bool esAncha = Width >= 900;
-        if (_esPantallaAncha == esAncha) return; // solo reacomodar si cambió el modo
-        _esPantallaAncha = esAncha;
+        // Panel de resultado a la derecha (PC) o fijo abajo (celular)
+        bool panelAlLado = Width >= 900;
+        if (_panelAlLado != panelAlLado)
+        {
+            _panelAlLado = panelAlLado;
+            UbicarPanel(panelAlLado);
+        }
 
-        AcomodarEnColumnas(GridMomentos, esAncha ? 3 : 1); // 3 lado a lado o apiladas
-        AcomodarEnColumnas(GridDatos, esAncha ? 2 : 1);
+        // 3 momentos lado a lado solo si hay espacio de verdad
+        bool momentosEnFila = Width >= 1250;
+        if (_momentosEnFila != momentosEnFila)
+        {
+            _momentosEnFila = momentosEnFila;
+            AcomodarEnColumnas(GridMomentos, momentosEnFila ? 3 : 1);
+        }
+
+        // Estudiante y fecha lado a lado o apilados
+        bool datosEnFila = Width >= 700;
+        if (_datosEnFila != datosEnFila)
+        {
+            _datosEnFila = datosEnFila;
+            AcomodarEnColumnas(GridDatos, datosEnFila ? 2 : 1);
+        }
     }
 
-    // Reparte los hijos de un Grid en N columnas
+    private void UbicarPanel(bool alLado)
+    {
+        Raiz.RowDefinitions.Clear();
+        Raiz.ColumnDefinitions.Clear();
+
+        if (alLado)
+        {
+            Raiz.RowDefinitions.Add(new RowDefinition(GridLength.Star));
+            Raiz.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
+            Raiz.ColumnDefinitions.Add(new ColumnDefinition(new GridLength(380)));
+            Grid.SetRow(PanelResumen, 0);
+            Grid.SetColumn(PanelResumen, 1);
+            PanelResumen.Margin = new Thickness(0, 24, 24, 24);
+            PanelResumen.VerticalOptions = LayoutOptions.Start;
+        }
+        else
+        {
+            Raiz.RowDefinitions.Add(new RowDefinition(GridLength.Star));
+            Raiz.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+            Raiz.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
+            Grid.SetRow(PanelResumen, 1);
+            Grid.SetColumn(PanelResumen, 0);
+            PanelResumen.Margin = new Thickness(12, 0, 12, 12);
+            PanelResumen.VerticalOptions = LayoutOptions.Fill;
+        }
+
+        // En el celular el panel es compacto: sin desglose ni texto de ayuda
+        Desglose.IsVisible = alLado;
+        AyudaBoton.IsVisible = alLado;
+    }
+
     private static void AcomodarEnColumnas(Grid grid, int columnas)
     {
         int total = grid.Children.Count;
