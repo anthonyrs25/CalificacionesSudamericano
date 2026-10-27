@@ -1,4 +1,4 @@
-﻿<?xml version = "1.0" encoding = "UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 <Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:CalificacionesSudamericano"
@@ -9,6 +9,42 @@
                 <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
                 <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- Paleta del instituto (como variables CSS) -->
+            <Color x:Key="Marino">#1E3A6E</Color>
+            <Color x:Key="Turquesa">#1494A9</Color>
+            <Color x:Key="FondoApp">#F3F5F9</Color>
+            <Color x:Key="TextoSuave">#6B7280</Color>
+            <Color x:Key="ColorError">#D64545</Color>
+
+            <!-- Tarjeta blanca redondeada -->
+            <Style x:Key="Tarjeta" TargetType="Border">
+                <Setter Property="BackgroundColor" Value="White" />
+                <Setter Property="Stroke" Value="#E3E8EF" />
+                <Setter Property="StrokeThickness" Value="1" />
+                <Setter Property="StrokeShape" Value="RoundRectangle 16" />
+                <Setter Property="Padding" Value="18" />
+            </Style>
+
+            <!-- Borde que envuelve cada Entry/Picker (arregla el Entry sin borde en Windows) -->
+            <Style x:Key="Campo" TargetType="Border">
+                <Setter Property="BackgroundColor" Value="#F8FAFC" />
+                <Setter Property="Stroke" Value="#D5DCE6" />
+                <Setter Property="StrokeThickness" Value="1.5" />
+                <Setter Property="StrokeShape" Value="RoundRectangle 10" />
+                <Setter Property="Padding" Value="10,0" />
+            </Style>
+
+            <Style x:Key="Etiqueta" TargetType="Label">
+                <Setter Property="FontSize" Value="13" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="TextColor" Value="{StaticResource TextoSuave}" />
+            </Style>
+
+            <Style x:Key="TextoError" TargetType="Label">
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="TextColor" Value="{StaticResource ColorError}" />
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

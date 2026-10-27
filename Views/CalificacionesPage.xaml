@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:CalificacionesSudamericano.ViewModels"
+             xmlns:comp="clr-namespace:CalificacionesSudamericano.Views.Componentes"
+             x:Class="CalificacionesSudamericano.Views.CalificacionesPage"
+             x:DataType="vm:CalificacionesViewModel"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{StaticResource FondoApp}"
+             Title="Sistema de Calificaciones">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="18">
+
+            <!-- ENCABEZADO -->
+            <Border x:Name="Encabezado" BackgroundColor="{StaticResource Marino}"
+                    StrokeThickness="0" StrokeShape="RoundRectangle 20" Padding="24,22">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="INSTITUTO SUDAMERICANO" FontSize="12" FontAttributes="Bold"
+                           CharacterSpacing="2" TextColor="#7FD3E0" />
+                    <Label Text="Sistema de Calificaciones" FontSize="26" FontAttributes="Bold" TextColor="White" />
+                    <Label Text="3 momentos · Clase 40 % · Autónoma 40 % · Evaluación 20 %"
+                           FontSize="13" TextColor="#C9D3E6" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- DATOS: estudiante y fecha -->
+            <Border x:Name="TarjetaDatos" Style="{StaticResource Tarjeta}">
+                <Grid x:Name="GridDatos" RowDefinitions="Auto,Auto" ColumnSpacing="16" RowSpacing="14">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Estudiante" Style="{StaticResource Etiqueta}" />
+                        <Border Style="{StaticResource Campo}">
+                            <Picker ItemsSource="{Binding Estudiantes}"
+                                    SelectedItem="{Binding EstudianteSeleccionado}"
+                                    Title="{OnPlatform Android='Seleccione un estudiante'}" />
+                        </Border>
+                        <Label Text="{Binding ErrorEstudiante}" IsVisible="{Binding TieneErrorEstudiante}"
+                               Style="{StaticResource TextoError}" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Grid.Row="1" Spacing="6">
+                        <Label Text="Fecha" Style="{StaticResource Etiqueta}" />
+                        <Border Style="{StaticResource Campo}">
+                            <DatePicker Date="{Binding Fecha}" Format="dd/MM/yyyy" />
+                        </Border>
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+
+            <!-- MOMENTOS: la misma tarjeta 3 veces, cada una con su propio ViewModel -->
+            <Grid x:Name="GridMomentos" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="16" RowSpacing="16">
+                <comp:MomentoCard BindingContext="{Binding Momento1}" />
+                <comp:MomentoCard Grid.Row="1" BindingContext="{Binding Momento2}" />
+                <comp:MomentoCard Grid.Row="2" BindingContext="{Binding Momento3}" />
+            </Grid>
+
+            <!-- RESULTADO -->
+            <Border x:Name="TarjetaResultado" Style="{StaticResource Tarjeta}">
+                <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto" RowSpacing="8">
+                    <Label Text="NOTA FINAL" Style="{StaticResource Etiqueta}" CharacterSpacing="1" />
+
+                    <HorizontalStackLayout Grid.Row="1" Spacing="6">
+                        <Label Text="{Binding NotaFinalTexto}" FontSize="48" FontAttributes="Bold"
+                               TextColor="{StaticResource Marino}" />
+                        <Label Text="/ 100" FontSize="18" TextColor="{StaticResource TextoSuave}"
+                               VerticalOptions="End" Margin="0,0,0,10" />
+                    </HorizontalStackLayout>
+
+                    <Border x:Name="ChipEstado" Grid.Row="1" Grid.Column="1" VerticalOptions="Center"
+                            BackgroundColor="{Binding FondoEstado}" StrokeThickness="0"
+                            StrokeShape="RoundRectangle 18" Padding="16,8">
+                        <Label Text="{Binding EstadoTexto}" TextColor="{Binding ColorEstado}"
+                               FontAttributes="Bold" FontSize="14" CharacterSpacing="1" />
+                    </Border>
+
+                    <!-- El Progress lo anima el code-behind -->
+                    <ProgressBar x:Name="BarraProgreso" Grid.Row="2" Grid.ColumnSpan="2"
+                                 ProgressColor="{Binding ColorEstado}" HeightRequest="10" Margin="0,6,0,0" />
+                </Grid>
+            </Border>
+
+            <!-- BOTÓN -->
+            <Button x:Name="BotonCalcular" Text="Calcular notas del estudiante"
+                    BackgroundColor="{StaticResource Turquesa}" TextColor="White"
+                    FontAttributes="Bold" FontSize="16" CornerRadius="14" HeightRequest="54"
+                    Clicked="AlPresionarCalcular" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
