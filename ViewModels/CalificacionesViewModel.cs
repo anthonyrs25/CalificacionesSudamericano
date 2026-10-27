@@ -4,7 +4,6 @@ using CalificacionesSudamericano.Services;
 
 namespace CalificacionesSudamericano.ViewModels;
 
-// El "cerebro" de la pantalla completa.
 public class CalificacionesViewModel : ViewModelBase
 {
     private string? _estudianteSeleccionado;
@@ -12,23 +11,28 @@ public class CalificacionesViewModel : ViewModelBase
     private decimal? _notaFinal;
     private string _errorEstudiante = string.Empty;
 
+    // "Archivador" en memoria: guarda las notas de cada estudiante mientras la app está abierta.
+    // Clave = nombre del estudiante. Valor = sus 9 notas (como texto) y la fecha.
+    private readonly Dictionary<string, (string[] Notas, DateTime? Fecha)> _guardados = new();
+
     public CalificacionesViewModel()
     {
-        // Datos fijos del Picker (5 compañeros)
         Estudiantes = new List<string>
         {
-            "María Fernanda Quizhpe",
-            "Juan Pablo Sarmiento",
-            "Daniela Ordóñez",
-            "Carlos Andrés Peña",
-            "Valeria Cárdenas"
+            "Diego Cabrera",
+            "Boris Viracocha",
+            "Jairo Arévalo",
+            "Darío Guzmán",
+            "Anthony Rodríguez"
         };
 
         Momento1 = new MomentoViewModel(1);
         Momento2 = new MomentoViewModel(2);
         Momento3 = new MomentoViewModel(3);
 
-        // Cuando cambia la nota de cualquier momento, recalculamos la final
+        // Los 9 campos en orden: M1 (clase, autónoma, evaluación), luego M2, luego M3
+        TodosLosCampos = Momento1.Campos.Concat(Momento2.Campos).Concat(Momento3.Campos).ToList();
+
         Momento1.PropertyChanged += AlCambiarMomento;
         Momento2.PropertyChanged += AlCambiarMomento;
         Momento3.PropertyChanged += AlCambiarMomento;
@@ -38,16 +42,33 @@ public class CalificacionesViewModel : ViewModelBase
     public MomentoViewModel Momento1 { get; }
     public MomentoViewModel Momento2 { get; }
     public MomentoViewModel Momento3 { get; }
+    public IReadOnlyList<CampoNotaViewModel> TodosLosCampos { get; }
 
     public string? EstudianteSeleccionado
     {
         get => _estudianteSeleccionado;
         set
         {
-            if (SetProperty(ref _estudianteSeleccionado, value) && value is not null)
-                ErrorEstudiante = string.Empty; // al elegir uno, se borra el error
+            if (!SetProperty(ref _estudianteSeleccionado, value))
+                return;
+
+            ErrorEstudiante = string.Empty;
+            CargarEstudiante(value); // vacía el formulario o muestra lo guardado
+
+            OnPropertyChanged(nameof(HayEstudiante));
+            OnPropertyChanged(nameof(NoHayEstudiante));
+            OnPropertyChanged(nameof(TextoGuardado));
         }
     }
+
+    // Habilita el paso 2 solo cuando hay estudiante elegido
+    public bool HayEstudiante => EstudianteSeleccionado is not null;
+    public bool NoHayEstudiante => !HayEstudiante;
+
+    public string TextoGuardado =>
+        EstudianteSeleccionado is not null && _guardados.ContainsKey(EstudianteSeleccionado)
+            ? "Tiene notas guardadas: puede revisarlas o editarlas."
+            : "Nuevo registro.";
 
     public string ErrorEstudiante
     {
@@ -67,7 +88,6 @@ public class CalificacionesViewModel : ViewModelBase
         set => SetProperty(ref _fecha, value);
     }
 
-    // Cuando cambia la nota final, avisamos a TODO lo que depende de ella
     public decimal? NotaFinal
     {
         get => _notaFinal;
@@ -86,8 +106,6 @@ public class CalificacionesViewModel : ViewModelBase
     }
 
     public string NotaFinalTexto => NotaFinal.HasValue ? NotaFinal.Value.ToString("0.00") : "—";
-
-    // La barra va de 0 a 1
     public double Progreso => NotaFinal.HasValue ? (double)(NotaFinal.Value / 100m) : 0;
 
     public EstadoAcademico? Estado =>
@@ -95,7 +113,6 @@ public class CalificacionesViewModel : ViewModelBase
 
     public string EstadoTexto => Estado?.ToString().ToUpperInvariant() ?? "SIN CALCULAR";
 
-    // Color del texto de la etiqueta y de la barra
     public Color ColorEstado => Estado switch
     {
         EstadoAcademico.Aprobado => Color.FromArgb("#1E8E5A"),
@@ -104,7 +121,6 @@ public class CalificacionesViewModel : ViewModelBase
         _ => Color.FromArgb("#8A94A6")
     };
 
-    // Fondo suave de la etiqueta
     public Color FondoEstado => Estado switch
     {
         EstadoAcademico.Aprobado => Color.FromArgb("#E3F5EC"),
@@ -113,7 +129,6 @@ public class CalificacionesViewModel : ViewModelBase
         _ => Color.FromArgb("#EEF1F5")
     };
 
-    // Se llama al presionar el botón: marca todos los errores pendientes
     public bool ValidarFormulario()
     {
         bool valido = true;
@@ -130,7 +145,17 @@ public class CalificacionesViewModel : ViewModelBase
         return valido;
     }
 
-    // Texto del DisplayAlert, con \n para los saltos de línea (lo pide el enunciado)
+    // Guarda las 9 notas y la fecha del estudiante actual en el archivador
+    public void GuardarEstudianteActual()
+    {
+        if (EstudianteSeleccionado is null)
+            return;
+
+        string[] notas = TodosLosCampos.Select(campo => campo.Texto).ToArray();
+        _guardados[EstudianteSeleccionado] = (notas, Fecha);
+        OnPropertyChanged(nameof(TextoGuardado));
+    }
+
     public string ConstruirResumen()
     {
         string fecha = (Fecha ?? DateTime.Today).ToString("dd/MM/yyyy");
@@ -142,6 +167,23 @@ public class CalificacionesViewModel : ViewModelBase
                $"Nota Momento 3: {Momento3.NotaTexto}\n" +
                $"Nota Final: {NotaFinalTexto}\n" +
                $"Estado: {EstadoTexto}";
+    }
+
+    // Si el estudiante tiene notas guardadas, las muestra; si no, deja todo vacío
+    private void CargarEstudiante(string? nombre)
+    {
+        if (nombre is not null && _guardados.TryGetValue(nombre, out var registro))
+        {
+            for (int i = 0; i < TodosLosCampos.Count; i++)
+                TodosLosCampos[i].Establecer(registro.Notas[i]);
+            Fecha = registro.Fecha;
+        }
+        else
+        {
+            foreach (var campo in TodosLosCampos)
+                campo.Establecer(string.Empty);
+            Fecha = DateTime.Today;
+        }
     }
 
     private void AlCambiarMomento(object? sender, PropertyChangedEventArgs e)

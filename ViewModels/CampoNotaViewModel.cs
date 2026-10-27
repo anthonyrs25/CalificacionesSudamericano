@@ -3,7 +3,7 @@ using CalificacionesSudamericano.Services;
 
 namespace CalificacionesSudamericano.ViewModels;
 
-// Un campo de nota: lo que escribió el usuario, el número entendido y el error (si hay).
+// Un campo de nota: lo que escribió el usuario, el número entendido y el error.
 public class CampoNotaViewModel : ViewModelBase
 {
     private string _texto = string.Empty;
@@ -15,21 +15,17 @@ public class CampoNotaViewModel : ViewModelBase
         Porcentaje = porcentaje;
     }
 
-    // Textos fijos que se muestran en la tarjeta
     public string Etiqueta { get; }
     public string Porcentaje { get; }
-
-    // El número válido (null si está vacío o es inválido)
     public decimal? Valor { get; private set; }
 
-    // Lo que el usuario escribe en el Entry. Cada vez que cambia, se valida.
     public string Texto
     {
         get => _texto;
         set
         {
             if (SetProperty(ref _texto, value ?? string.Empty))
-                Validar(mostrarVacio: false); // mientras escribe, un campo vacío no es error
+                Validar(mostrarVacio: false);
         }
     }
 
@@ -43,29 +39,35 @@ public class CampoNotaViewModel : ViewModelBase
         }
     }
 
-    // La pantalla usa esto para pintar el borde rojo y mostrar el mensaje
     public bool TieneError => !string.IsNullOrEmpty(Error);
 
-    // Valida el texto. mostrarVacio = true cuando se presiona "Calcular".
+    // Pone un texto desde el código (al cambiar de estudiante).
+    // Siempre revalida, aunque el texto sea igual, para borrar errores viejos.
+    public void Establecer(string texto)
+    {
+        _texto = texto ?? string.Empty;
+        OnPropertyChanged(nameof(Texto));
+        Validar(mostrarVacio: false);
+    }
+
     public bool Validar(bool mostrarVacio)
     {
-        // Acepta coma o punto: convertimos la coma en punto
         string limpio = Texto.Trim().Replace(',', '.');
 
         if (limpio.Length == 0)
         {
             Valor = null;
-            Error = mostrarVacio ? "Campo obligatorio" : string.Empty;
+            Error = mostrarVacio ? "Obligatorio" : string.Empty;
         }
         else if (!decimal.TryParse(limpio, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out decimal numero))
         {
             Valor = null;
-            Error = "Solo se permiten números";
+            Error = "Solo números";
         }
         else if (numero < CalculadoraNotas.NotaMinima || numero > CalculadoraNotas.NotaMaxima)
         {
             Valor = null;
-            Error = "Debe estar entre 1 y 100";
+            Error = "Entre 1 y 100";
         }
         else
         {
@@ -73,7 +75,6 @@ public class CampoNotaViewModel : ViewModelBase
             Error = string.Empty;
         }
 
-        // Avisamos que Valor cambió: el Momento escucha esto para recalcular
         OnPropertyChanged(nameof(Valor));
         return Valor.HasValue;
     }

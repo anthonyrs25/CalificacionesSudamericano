@@ -11,14 +11,13 @@ public class MomentoViewModel : ViewModelBase
     public MomentoViewModel(int numero)
     {
         Titulo = $"Momento {numero}";
-        Clase = new CampoNotaViewModel("Tareas en clase", "40 %");
-        Autonoma = new CampoNotaViewModel("Tareas autónomas", "40 %");
+        // Etiquetas cortas: ahora los 3 campos van en una sola fila
+        Clase = new CampoNotaViewModel("Clase", "40 %");
+        Autonoma = new CampoNotaViewModel("Autónoma", "40 %");
         Evaluacion = new CampoNotaViewModel("Evaluación", "20 %");
 
-        // Lista para que la tarjeta dibuje los 3 campos con UNA sola plantilla
         Campos = new[] { Clase, Autonoma, Evaluacion };
 
-        // Escuchamos cada campo: cuando su Valor cambie, recalculamos
         foreach (var campo in Campos)
             campo.PropertyChanged += AlCambiarCampo;
     }
@@ -39,11 +38,8 @@ public class MomentoViewModel : ViewModelBase
         }
     }
 
-    // "—" mientras falten datos; con 2 decimales cuando está completo
     public string NotaTexto => Nota.HasValue ? Nota.Value.ToString("0.00") : "—";
 
-    // Valida los 3 campos marcando también los vacíos.
-    // "&=" (sin cortocircuito) asegura que se validen TODOS, aunque el primero falle.
     public bool ValidarTodo()
     {
         bool valido = true;
